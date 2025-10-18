@@ -1,23 +1,55 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <title>Player con fondo oscuro</title>
-    <style>
-        body {
-            background-color: #111; /* Fondo oscuro */
-            color: white; /* Por si quieres que el texto sea blanco */
-            margin: 0;
-            padding: 0;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>Radio Player</title>
+  <style>
+    body {
+      background-color: #000;         /* Fondo negro */
+      display: flex;                  /* Centrar contenido */
+      justify-content: center;
+      align-items: center;
+      height: 100vh;                  /* Ocupa toda la pantalla */
+      margin: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    .play-button {
+      padding: 40px 80px;             /* Aumenta el tamaño del botón */
+      font-size: 40px;                /* Texto más grande */
+      background-color: #ffcc00;      /* Color llamativo (amarillo) */
+      color: #000;
+      border: none;
+      border-radius: 20px;            /* Bordes redondeados */
+      cursor: pointer;
+      box-shadow: 0 0 25px #ffcc00;   /* Brillo alrededor del botón */
+      transition: all 0.3s ease;
+    }
+
+    .play-button:hover {
+      background-color: #ffaa00;      /* Color al pasar el cursor */
+      box-shadow: 0 0 40px #ffaa00;
+      transform: scale(1.05);         /* Efecto de aumento */
+    }
+  </style>
 </head>
 <body>
+  <audio id="radioPlayer" src="https://tupanel.info/stream/2digitalradioHDsslLIVE016" type="audio/mpeg"></audio>
+  <button class="play-button" id="playPauseBtn">▶︎ PLAY</button>
 
-<div style="text-align: center; margin-top: 600px;"> 
-    <audio controls style="transform: scale(3.0);">
-        <source src="https://tupanel.info/stream/2digitalradioHDsslLIVE016" type="audio/mpeg">
-    </audio>
-</div>
+  <script>
+    const audio = document.getElementById('radioPlayer');
+    const btn = document.getElementById('playPauseBtn');
 
+    btn.addEventListener('click', () => {
+      if (audio.paused) {
+        audio.play();
+        btn.textContent = '❚❚ PAUSE';
+      } else {
+        audio.pause();
+        btn.textContent = '▶︎ PLAY';
+      }
+    });
+  </script>
 </body>
 </html>
