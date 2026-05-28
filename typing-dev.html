@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Typing Dev - Fila Guía</title>
+    <style>
+        :root {
+            --bg-color: #1e1e1e;
+            --text-color: #d4d4d4;
+            --accent-color: #007acc;
+            --correct-color: #4CAF50;
+            --error-color: #F44336;
+            --active-bg: #333333;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Consolas', 'Courier New', monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        #terminal {
+            background-color: #252526;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 30px;
+            width: 80%;
+            max-width: 800px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px dashed #555;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 1.5rem;
+            color: var(--accent-color);
+        }
+
+        .stats {
+            display: flex;
+            gap: 20px;
+            font-size: 1.2rem;
+        }
+
+        #code-display {
+            font-size: 2rem;
+            letter-spacing: 2px;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            padding: 20px;
+            background-color: var(--active-bg);
+            border-radius: 4px;
+            margin-bottom: 20px;
+            user-select: none;
+        }
+
+        .char {
+            border-bottom: 2px solid transparent;
+        }
+
+        .char.current {
+            border-bottom: 2px solid var(--accent-color);
+            animation: blink 1s infinite;
+        }
+
+        .char.correct {
+            color: var(--correct-color);
+        }
+
+        .char.error {
+            color: var(--error-color);
+            background-color: rgba(244, 67, 54, 0.2);
+        }
+
+        @keyframes blink {
+            0%, 100% { border-color: transparent; }
+            50% { border-color: var(--accent-color); }
+        }
+
+        .keyboard-hint {
+            text-align: center;
+            color: #888;
+            font-size: 0.9rem;
+            margin-top: 20px;
+        }
+
+        #message {
+            text-align: center;
+            font-size: 1.2rem;
+            color: var(--accent-color);
+            min-height: 30px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="terminal">
+        <div class="header">
+            <h1>>_ Typing_Dev.exe</h1>
+            <div class="stats">
+                <span>Nivel: <span id="level-display">1</span>/4</span>
+                <span>Errores: <span id="error-count">0</span></span>
+            </div>
+        </div>
+        
+        <div id="code-display"></div>
+        <div id="message">Presiona cualquier tecla para comenzar...</div>
+        
+        <div class="keyboard-hint">
+            Teclas permitidas: [ a s d f ] [ j k l ñ ] y [ Espacio ]
+        </div>
+    </div>
+
+    <script>
+        const levels = [
+            "asdf ñlkj asdf ñlkj",
+            "sass flask ada add ask",
+            "falla ada add faldas falsas",
+            "asflask jlñsass dfada salsafallada"
+        ];
+
+        let currentLevelIndex = 0;
+        let currentCharIndex = 0;
+        let errors = 0;
+        let isPlaying = false;
+        let currentText = "";
+
+        const codeDisplay = document.getElementById('code-display');
+        const errorCountDisplay = document.getElementById('error-count');
+        const levelDisplay = document.getElementById('level-display');
+        const messageDisplay = document.getElementById('message');
+
+        function initLevel() {
+            if (currentLevelIndex >= levels.length) {
+                endGame();
+                return;
+            }
+
+            currentText = levels[currentLevelIndex];
+            currentCharIndex = 0;
+            levelDisplay.innerText = currentLevelIndex + 1;
+            renderText();
+            messageDisplay.innerText = "Escribiendo...";
+        }
+
+        function renderText() {
+            codeDisplay.innerHTML = "";
+            for (let i = 0; i < currentText.length; i++) {
+                const span = document.createElement('span');
+                span.innerText = currentText[i];
+                span.classList.add('char');
+                
+                if (i === currentCharIndex) span.classList.add('current');
+                else if (i < currentCharIndex) span.classList.add('correct');
+                
+                codeDisplay.appendChild(span);
+            }
+        }
+
+        function endGame() {
+            isPlaying = false;
+            codeDisplay.innerHTML = "=== EJECUCIÓN FINALIZADA ===";
+            
+            let feedback = "";
+            if(errors === 0) feedback = "¡Cero errores! Eres un Senior de la fila guía.";
+            else if(errors <= 3) feedback = "Nivel Mid-Level. ¡Buen trabajo!";
+            else feedback = "Demasiados errores de sintaxis. Toca seguir practicando.";
+
+            messageDisplay.innerText = feedback + " (Presiona F5 para reiniciar)";
+            document.querySelector('.current')?.classList.remove('current');
+        }
+
+        document.addEventListener('keydown', (e) => {
+            // Ignorar teclas especiales que no sean espacio o letras
+            if (e.key === "Shift" || e.key === "Control" || e.key === "Alt" || e.key === "Meta" || e.key === "Tab") return;
+
+            if (!isPlaying) {
+                isPlaying = true;
+                errors = 0;
+                currentLevelIndex = 0;
+                errorCountDisplay.innerText = errors;
+                initLevel();
+                return;
+            }
+
+            e.preventDefault(); // Prevenir scroll al presionar espacio
+
+            const expectedChar = currentText[currentCharIndex];
+            const typedChar = e.key;
+
+            const charsElements = document.querySelectorAll('.char');
+            const currentCharElement = charsElements[currentCharIndex];
+
+            if (typedChar === expectedChar) {
+                currentCharElement.classList.remove('current', 'error');
+                currentCharElement.classList.add('correct');
+                currentCharIndex++;
+
+                if (currentCharIndex >= currentText.length) {
+                    currentLevelIndex++;
+                    setTimeout(initLevel, 300); // Pequeña pausa antes del siguiente nivel
+                } else {
+                    charsElements[currentCharIndex].classList.add('current');
+                }
+            } else {
+                // Registrar error solo en las teclas permitidas de este ejercicio
+                const allowedKeys = ['a', 's', 'd', 'f', 'j', 'k', 'l', 'ñ', ' '];
+                if (allowedKeys.includes(typedChar.toLowerCase())) {
+                    errors++;
+                    errorCountDisplay.innerText = errors;
+                    currentCharElement.classList.add('error');
+                }
+            }
+        });
+    </script>
+</body>
+</html>
